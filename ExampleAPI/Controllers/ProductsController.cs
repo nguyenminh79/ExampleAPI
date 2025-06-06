@@ -38,7 +38,7 @@ namespace ExampleAPI.Controllers
                 return NotFound();
             }
 
-            return product;
+            return Ok(product);
         }
 
         // PUT: api/Products/5
@@ -48,7 +48,7 @@ namespace ExampleAPI.Controllers
         {
             if (id != product.ProductId)
             {
-                return BadRequest();
+                return BadRequest("Id not match");
             }
 
             _context.Update(product);
@@ -61,7 +61,7 @@ namespace ExampleAPI.Controllers
             {
                 if (!ProductExists(id))
                 {
-                    return NotFound();
+                    return NotFound("This product not exist");
                 }
                 else
                 {
@@ -69,7 +69,7 @@ namespace ExampleAPI.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(product);
         }
 
         // POST: api/Products
@@ -81,7 +81,7 @@ namespace ExampleAPI.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = product.ProductId }, product);
+            return Ok(product);
         }
 
         // DELETE: api/Products/5
@@ -91,13 +91,17 @@ namespace ExampleAPI.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound("This product not exist");
             }
-
+            var orderItems = await _context.OrderItems.Where(x => x.ProductId == id).ToListAsync();
+            if (orderItems.Count > 0)
+            {
+                return BadRequest("This product already had order item, please delete that order item first");
+            }
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Delete product success");
         }
 
         private bool ProductExists(int id)

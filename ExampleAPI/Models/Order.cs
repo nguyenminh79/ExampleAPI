@@ -13,8 +13,8 @@ public partial class Order
     public DateTime? OrderDate { get; set; }
 
     public decimal? TotalAmount { get; set; }
-    [JsonIgnore]
+    //[JsonIgnore]
     public virtual Customer Customer { get; set; } = null!;
-    [JsonIgnore]
+    //[JsonIgnore]
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

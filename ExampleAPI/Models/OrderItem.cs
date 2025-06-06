@@ -15,8 +15,8 @@ public partial class OrderItem
     public int Quantity { get; set; }
 
     public decimal UnitPrice { get; set; }
-    [JsonIgnore]
+    //[JsonIgnore]
     public virtual Order Order { get; set; } = null!;
-    [JsonIgnore]
+    //[JsonIgnore]
     public virtual Product Product { get; set; } = null!;
 }

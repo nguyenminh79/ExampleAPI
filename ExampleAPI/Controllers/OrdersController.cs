@@ -25,7 +25,8 @@ namespace ExampleAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            return await _context.Orders.ToListAsync();
+            var orders = await _context.Orders.Include(o => o.Customer).ToListAsync();
+            return Ok(orders);
         }
 
         // GET: api/Orders/5
@@ -39,7 +40,7 @@ namespace ExampleAPI.Controllers
                 return NotFound();
             }
 
-            return order;
+            return Ok(order);
         }
 
         // PUT: api/Orders/5
@@ -49,10 +50,10 @@ namespace ExampleAPI.Controllers
         {
             if (id != orderDTO.OrderId)
             {
-                return BadRequest();
+                return BadRequest("Id not match");
             }
             
-            var order = new Order() { CustomerId = orderDTO.CustomerId, OrderDate = orderDTO.OrderDate, TotalAmount = orderDTO.TotalAmount };
+            var order = new Order() {OrderId = orderDTO.OrderId, CustomerId = orderDTO.CustomerId, OrderDate = orderDTO.OrderDate, TotalAmount = orderDTO.TotalAmount };
             _context.Update(order);
 
             try
@@ -63,7 +64,7 @@ namespace ExampleAPI.Controllers
             {
                 if (!OrderExists(id))
                 {
-                    return NotFound();
+                    return NotFound("This order not exist");
                 }
                 else
                 {
@@ -71,7 +72,7 @@ namespace ExampleAPI.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(order);
         }
 
         // POST: api/Orders
@@ -99,13 +100,17 @@ namespace ExampleAPI.Controllers
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
-                return NotFound();
+                return NotFound("Order not found");
             }
-
+            var orderItems = await _context.OrderItems.Where(x => x.OrderId == id).ToListAsync();
+            if (orderItems.Count > 0)
+            {
+                return BadRequest("This order already had order items, please delete that order items first");
+            }
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Delete order success");
         }
 
         private bool OrderExists(int id)

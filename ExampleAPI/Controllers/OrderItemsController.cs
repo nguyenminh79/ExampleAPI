@@ -84,7 +84,7 @@ namespace ExampleAPI.Controllers
             o.TotalAmount = await _context.OrderItems.Where(x => x.OrderId == orderItemDTO.OrderId).Select(x => x.UnitPrice * x.Quantity).SumAsync();
             _context.Orders.Update(o);
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(orderItem);
         }
 
         // POST: api/OrderItems
@@ -120,7 +120,7 @@ namespace ExampleAPI.Controllers
             var orderItem = await _context.OrderItems.FindAsync(id);
             if (orderItem == null)
             {
-                return NotFound();
+                return NotFound("OrderItem not exist");
             }
             var o = await _context.Orders.FirstOrDefaultAsync(x => x.OrderId == orderItem.OrderId);
             _context.OrderItems.Remove(orderItem);
@@ -128,7 +128,7 @@ namespace ExampleAPI.Controllers
             await _context.SaveChangesAsync();
             o.TotalAmount = await _context.OrderItems.Where(x => x.OrderId == orderItem.OrderId).Select(x => x.UnitPrice * x.Quantity).SumAsync();
             _context.Orders.Update(o);
-            return NoContent();
+            return Ok("Delete OrderItem success");
         }
 
         private bool OrderItemExists(int id)

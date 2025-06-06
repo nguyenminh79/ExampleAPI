@@ -24,7 +24,8 @@ namespace ExampleAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
         {
-            return await _context.Customers.ToListAsync();
+            var customers = await _context.Customers.ToListAsync();
+            return Ok(customers);
         }
 
         // GET: api/Customers/5
@@ -38,7 +39,7 @@ namespace ExampleAPI.Controllers
                 return NotFound();
             }
 
-            return customer;
+            return Ok(customer);
         }
 
         // PUT: api/Customers/5
@@ -69,7 +70,7 @@ namespace ExampleAPI.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(customer);
         }
 
         // POST: api/Customers
@@ -77,8 +78,8 @@ namespace ExampleAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
         {
-            var c = _context.Customers.FirstOrDefaultAsync(x => x.Email == customer.Email);
-            if(c != null)
+            var c = await _context.Customers.FirstOrDefaultAsync(x => x.Email.ToLower().Contains(customer.Email.ToLower()));
+            if (c != null)
             {
                 return BadRequest("Customers email was exist");
             }
@@ -95,13 +96,17 @@ namespace ExampleAPI.Controllers
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null)
             {
-                return NotFound();
+                return NotFound("Customer not exist");
             }
-
+            var orders = await _context.Orders.Where(x => x.CustomerId == id).ToListAsync();
+            if (orders.Count > 0)
+            {
+                return BadRequest("This customer already had order, please deleted that order first");
+            }
             _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Delete success");
         }
 
         private bool CustomerExists(int id)
