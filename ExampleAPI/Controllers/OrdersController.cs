@@ -25,7 +25,7 @@ namespace ExampleAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            var orders = await _context.Orders.Include(o => o.Customer).ToListAsync();
+            var orders = await _context.Orders.Include(o => o.Customer).Select(x => new  { x.OrderId, x.CustomerId, CustomerName = x.Customer.FullName,x.OrderDate, x.TotalAmount, Address = x.Customer.Address}).ToListAsync();
             return Ok(orders);
         }
 
@@ -84,7 +84,7 @@ namespace ExampleAPI.Controllers
 
             if (c != null)
             {
-                var order = new Order() { OrderDate = orderDTO.OrderDate, TotalAmount = 0, Customer = c};
+                var order = new Order() { OrderDate = orderDTO.OrderDate, TotalAmount = orderDTO.TotalAmount, Customer = c};
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 

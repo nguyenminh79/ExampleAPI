@@ -25,7 +25,7 @@ namespace ExampleAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderItem>>> GetOrderItems()
         {
-            var orderItem = await _context.OrderItems.ToListAsync();
+            var orderItem = await _context.OrderItems.Include(x => x.Product).Include(x=>x.Order).Select(x => new { x.OrderItemId, x.OrderId, OrderDate = x.Order.OrderDate,  x.ProductId, ProductName = x.Product.ProductName, x.Quantity, x.UnitPrice }).ToListAsync();
             return Ok(orderItem);
         }
 
@@ -80,7 +80,6 @@ namespace ExampleAPI.Controllers
                     throw;
                 }
             }
-
             o.TotalAmount = await _context.OrderItems.Where(x => x.OrderId == orderItemDTO.OrderId).Select(x => x.UnitPrice * x.Quantity).SumAsync();
             _context.Orders.Update(o);
             await _context.SaveChangesAsync();
@@ -106,9 +105,9 @@ namespace ExampleAPI.Controllers
             var orderItem = new OrderItem() { OrderId = orderItemDTO.OrderId, ProductId = orderItemDTO.ProductId, Quantity = orderItemDTO.Quantity, UnitPrice = orderItemDTO.UnitPrice };
             _context.OrderItems.Add(orderItem);
             await _context.SaveChangesAsync();
-            //o.TotalAmount = await _context.OrderItems.Where(x => x.OrderId == orderItemDTO.OrderId).Select(x => x.UnitPrice * x.Quantity).SumAsync();
-            //_context.Orders.Update(o);
-            //await _context.SaveChangesAsync();
+            o.TotalAmount = await _context.OrderItems.Where(x => x.OrderId == orderItemDTO.OrderId).Select(x => x.UnitPrice * x.Quantity).SumAsync();
+            _context.Orders.Update(o);
+            await _context.SaveChangesAsync();
 
             return Ok(orderItem);
         }
